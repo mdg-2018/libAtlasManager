@@ -26,8 +26,8 @@ module.exports = {
     endpoint = uri + credentials.projectid + endpoint;
     request.get(endpoint, getAuth(credentials), callback);
   },
-  doPost: function (endpoint, postbody, projectid, callback) {
-    endpoint = uri + projectid + endpoint;
+  doPost: function (endpoint, postbody, credentials, callback) {
+    endpoint = uri + credentials.projectid + endpoint;
 
     opts = {
       headers: { "content-type": "application/json" },
@@ -35,20 +35,21 @@ module.exports = {
       body: JSON.stringify(postbody),
     }
 
-    opts.auth = auth.auth;
+    opts.auth = getAuth(credentials).auth;
 
     request.post(opts, callback);
   },
-  doDelete: function (endpoint, projectid, callback) {
-    endpoint = uri + projectid + endpoint;
+  doDelete: function (endpoint, credentials, callback) {
+    endpoint = uri + credentials.projectid + endpoint;
+    console.log(credentials);
 
-    request.delete(endpoint, auth, callback);
+    request.delete(endpoint, getAuth(credentials), callback);
   },
-  doPatch: function (endpoint, projectid, clustername, body, callback) {
-    endpoint = uri + projectid + endpoint + `/${clustername}`;
+  doPatch: function (endpoint, credentials, clustername, body, callback) {
+    endpoint = uri + credentials.projectid + endpoint + `/${clustername}`;
     var opts = {};
     opts.headers = { "content-type": "application/json" };
-    opts.auth = auth.auth;
+    opts.auth = getAuth(credentials).auth;
     opts.uri = endpoint;
     opts.body = JSON.stringify(body);
 

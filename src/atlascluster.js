@@ -1,9 +1,9 @@
+const dockerNames = require('docker-names');
 const atlasrequest = require('./atlasrequest');
 const fs = require('fs');
 var config = require('../config');
 
 function getclusterinfo(auth, clustername, callback) {
-    console.log(auth.username);
     atlasrequest.doGet("/clusters", auth, function (error, response, body) {
         if (error != null) {
             console.log("Error: " + error);
@@ -25,10 +25,7 @@ class AtlasApiClient {
             this.atlas_root = atlas_root;
         } else {
             this.atlas_root = config.atlas_root;
-        }
-
-        console.log(this.projectid);
-        
+        }        
     }
 
     printclusterinfo(clustername) {
@@ -38,116 +35,96 @@ class AtlasApiClient {
             process.exit();
         })
     }
-    // getclusternames: function (projectid,callback) {
-    //     getclusterinfo(projectid, null, function (clusterdetails) {
-    //         var names = [];
-    //         clusterdetails.results.forEach(function (cluster) {
-    //             names.push(cluster.name);
-    //         });
-    //         console.log(names);
-    //         if(callback != null){
-    //             callback(names);
-    //         } else {
-    //             process.exit();
-    //         }
-    //     });
 
-    // },
-    // createcluster: function (projectid, clusterdefinition, clusterdefinitionfile) {
-    //     var definition;
+    getclusternames(callback) {
+        getclusterinfo(this.auth, null, function (clusterdetails) {
+            var names = [];
+            clusterdetails.results.forEach(function (cluster) {
+                names.push(cluster.name);
+            });
+            callback(names);
+        });
 
-    //     if (clusterdefinition == null && clusterdefinitionfile == null) {
+    }
+    createcluster(clusterdefinition, clusterdefinitionfile) {
+        var definition;
 
-    //         //generate random name fo cluster, docker style
-    //         var dockerNames = require('docker-names');
-    //         var clustername = dockerNames.getRandomName().replace("_", "-");
+        if (clusterdefinition == null && clusterdefinitionfile == null) {
 
-    //         definition = config.defaultClusterSettings;
-    //         definition.name = clustername;
-    //     }
+            //generate random name fo cluster, docker style
+            var clustername = dockerNames.getRandomName().replace("_", "-");
 
-    //     if (clusterdefinition != null && clusterdefinitionfile != null) {
-    //         throw new Error("Error: conflicting cluster definition information");
-    //     }
+            definition = config.defaultClusterSettings;
+            definition.name = clustername;
+        }
 
-    //     if (clusterdefinition != null) {
-    //         definition = JSON.parse(clusterdefinition);
-    //     }
+        if (clusterdefinition != null && clusterdefinitionfile != null) {
+            throw new Error("Error: conflicting cluster definition information");
+        }
 
-    //     if (clusterdefinitionfile != null) {
-    //         var input = fs.readFileSync(clusterdefinitionfile);
-    //         definition = JSON.parse(input);
-    //     }
+        if (clusterdefinition != null) {
+            definition = JSON.parse(clusterdefinition);
+        }
 
-    //     atlasrequest.doPost("/clusters", definition, projectid, function (err, result) {
-    //         if (err) {
-    //             console.log(err);
-    //         }
-    //         console.log(JSON.parse(result.body));
-    //         process.exit();
-    //     });
-    // },
-    // deletecluster: function (projectid, clustername, deleteall) {
-    //     if (!deleteall) {
-    //         var endpoint = "/clusters/" + clustername;
-    //         atlasrequest.doDelete(endpoint, projectid, function (err, response) {
-    //             if (err) {
-    //                 console.log(err);
-    //             }
-    //             console.log(response);
-    //         })
-    //     } else if(deleteall){
-    //         this.getclusternames(projectid,function(names){
-    //             names.forEach(function(clustername){
-    //                 var endpoint = "/clusters/" + clustername;
-    //                 atlasrequest.doDelete(endpoint, projectid, function (err, response) {
-    //                     if (err) {
-    //                         console.log(err);
-    //                     }
-    //                     console.log(response);
-    //                     process.exit();
-    //                 })
-    //             })
-    //         })
-    //     }
+        if (clusterdefinitionfile != null) {
+            var input = fs.readFileSync(clusterdefinitionfile);
+            definition = JSON.parse(input);
+        }
 
-    // },
-    // modifycluster: function(projectid, clustername, clusterdefinition, clusterdefinitionfile){
-    //     var definition;
+        atlasrequest.doPost("/clusters", definition, this.auth, function (err, result) {
+            if (err) {
+                console.log(err);
+            }
+            console.log(JSON.parse(result.body));
+            process.exit();
+        });
+    }
+    deletecluster (clustername, deleteall) {
+        if (!deleteall) {
+            if(!clustername){
+                throw "invalid argument - clustername must not be null"
+            }
+            var endpoint = "/clusters/" + clustername;
+            atlasrequest.doDelete(endpoint, this.auth, function (err, response) {
+                if (err) {
+                    console.log(err);
+                }
+                console.log(response);
+            })
+        } else if(deleteall && !clustername){
+            var self = this;
+            this.getclusternames(function(names){
+                names.forEach(function(clustername){
+                    var endpoint = "/clusters/" + clustername;
+                    atlasrequest.doDelete(endpoint, self.auth, function (err, response) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        console.log(response);
+                        process.exit();
+                    })
+                })
+            })
+        }
 
-    //     if (clusterdefinition == null && clusterdefinitionfile == null) {
-    //         throw new Error("Invalid argument: must provide cluster definition or path to cluster definition file");
-    //     }
-
-    //     if (clusterdefinition != null && clusterdefinitionfile != null) {
-    //         throw new Error("Error: conflicting cluster definition information");
-    //     }
-
-    //     if (clusterdefinition != null) {
-    //         definition = JSON.parse(clusterdefinition);
-    //     }
-
-    //     if (clusterdefinitionfile != null) {
-    //         var input = fs.readFileSync(clusterdefinitionfile);
-    //         definition = JSON.parse(input);
-    //     }
-
-    //     atlasrequest.doPatch("/clusters", projectid, clustername, definition, function (err, result) {
-    //         if (err) {
-    //             console.log(err);
-    //         }
-    //         console.log(JSON.parse(result.body));
-    //         process.exit();
-    //     });
-    // },
-    // pausecluster: function(projectid, clustername){
-    //     var pause = '{"paused":true}';
-    //     this.modifycluster(projectid,clustername,pause);
-    // },
-    // resumecluster: function(projectid, clustername){
-    //     var pause = '{"paused":false}';
-    //     this.modifycluster(projectid,clustername,pause);
-    // }
+    }
+    modifycluster(clustername, clusterdefinition){
+        atlasrequest.doPatch("/clusters", this.auth, clustername, clusterdefinition, function (err, result) {
+            if (err) {
+                console.log(err);
+            }
+            console.log(JSON.parse(result.body));
+            process.exit();
+        });
+    }
+    pausecluster(clustername){
+        var pause = {"paused":true};
+        this.modifycluster(clustername,pause);
+    }
+    resumecluster(clustername){
+        var pause = {"paused":false};
+        this.modifycluster(clustername,pause);
+    }
 }
 
 
