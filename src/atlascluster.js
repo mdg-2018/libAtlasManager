@@ -5,12 +5,7 @@ var config = require('../config');
 
 function getclusterinfo(auth, clustername, callback) {
     atlasrequest.doGet("/clusters", auth, function (error, response, body) {
-        if (error != null) {
-            console.log("Error: " + error);
-        }
-
-        callback(JSON.parse(body));
-
+        callback(error, JSON.parse(body));
     })
 }
 
@@ -30,7 +25,7 @@ class AtlasApiClient {
 
     printclusterinfo(clustername) {
         //todo: support looking for specific cluster
-        getclusterinfo(this.auth, clustername, function (clusterdetails) {
+        getclusterinfo(this.auth, clustername, function (err, clusterdetails) {
             console.log(JSON.stringify(clusterdetails));
             process.exit();
         })
@@ -41,12 +36,12 @@ class AtlasApiClient {
     }
 
     getclusternames(callback) {
-        getclusterinfo(this.auth, null, function (clusterdetails) {
+        getclusterinfo(this.auth, null, function (err, clusterdetails) {
             var names = [];
             clusterdetails.results.forEach(function (cluster) {
                 names.push(cluster.name);
             });
-            callback(names);
+            callback(err, names);
         });
 
     }
@@ -76,11 +71,8 @@ class AtlasApiClient {
         }
 
         atlasrequest.doPost("/clusters", definition, this.auth, function (err, result) {
-            if (err) {
-                console.log(err);
-            }
             if (callback) {
-                callback(JSON.parse(result.body));
+                callback(err, JSON.parse(result.body));
             }
         });
     }
@@ -91,11 +83,9 @@ class AtlasApiClient {
             }
             var endpoint = "/clusters/" + clustername;
             atlasrequest.doDelete(endpoint, this.auth, function (err, response) {
-                if (err) {
-                    console.log(err);
-                }
+                
                 if (callback) {
-                    callback(JSON.parse(response.body));
+                    callback(err, JSON.parse(response.body));
                 }
             })
         } else if (deleteall && !clustername) {
@@ -104,11 +94,8 @@ class AtlasApiClient {
                 names.forEach(function (clustername) {
                     var endpoint = "/clusters/" + clustername;
                     atlasrequest.doDelete(endpoint, self.auth, function (err, response) {
-                        if (err) {
-                            console.log(err);
-                        }
                         if (callback) {
-                            callback(JSON.parse(response.body));
+                            callback(err, JSON.parse(response.body));
                         }
                     })
                 })
@@ -118,11 +105,8 @@ class AtlasApiClient {
     }
     modifycluster(clustername, clusterdefinition, callback) {
         atlasrequest.doPatch("/clusters", this.auth, clustername, clusterdefinition, function (err, result) {
-            if (err) {
-                console.log(err);
-            }
             if (callback) {
-                callback(JSON.parse(result.body))
+                callback(err, JSON.parse(result.body))
             } else {
                 process.exit();
             }
