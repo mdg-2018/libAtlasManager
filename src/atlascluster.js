@@ -36,6 +36,10 @@ class AtlasApiClient {
         })
     }
 
+    clusterinfo(clustername,callback){
+        getclusterinfo(this.auth,clustername,callback);
+    }
+
     getclusternames(callback) {
         getclusterinfo(this.auth, null, function (clusterdetails) {
             var names = [];
