@@ -1,3 +1,3 @@
 module.exports = {
-        atlascluster      : require('./src/atlascluster.js')
+        AtlasApiClient      : require('./src/atlascluster.js')
 }
