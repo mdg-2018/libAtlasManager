@@ -41,8 +41,6 @@ module.exports = {
   },
   doDelete: function (endpoint, credentials, callback) {
     endpoint = uri + credentials.projectid + endpoint;
-    console.log(credentials);
-
     request.delete(endpoint, getAuth(credentials), callback);
   },
   doPatch: function (endpoint, credentials, clustername, body, callback) {
@@ -52,9 +50,6 @@ module.exports = {
     opts.auth = getAuth(credentials).auth;
     opts.uri = endpoint;
     opts.body = JSON.stringify(body);
-
-    console.log(opts);
-
     request.patch(endpoint, opts, callback);
   }
 }
