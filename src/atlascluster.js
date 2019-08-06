@@ -16,16 +16,16 @@ function getclusterinfo(auth, clustername, callback) {
 
 class AtlasApiClient {
 
-    constructor(projectid,api_key,username,atlas_root){
+    constructor(projectid, api_key, username, atlas_root) {
         this.auth = {};
         this.auth.projectid = projectid;
         this.auth.api_key = api_key;
         this.auth.username = username;
-        if(atlas_root){
+        if (atlas_root) {
             this.atlas_root = atlas_root;
         } else {
             this.atlas_root = config.atlas_root;
-        }        
+        }
     }
 
     printclusterinfo(clustername) {
@@ -36,8 +36,8 @@ class AtlasApiClient {
         })
     }
 
-    clusterinfo(clustername,callback){
-        getclusterinfo(this.auth,clustername,callback);
+    clusterinfo(clustername, callback) {
+        getclusterinfo(this.auth, clustername, callback);
     }
 
     getclusternames(callback) {
@@ -79,13 +79,14 @@ class AtlasApiClient {
             if (err) {
                 console.log(err);
             }
-            console.log(JSON.parse(result.body));
-            process.exit();
+            if (callback) {
+                callback(JSON.parse(result.body));
+            }
         });
     }
-    deletecluster (clustername, deleteall) {
+    deletecluster(clustername, deleteall, callback) {
         if (!deleteall) {
-            if(!clustername){
+            if (!clustername) {
                 throw "invalid argument - clustername must not be null"
             }
             var endpoint = "/clusters/" + clustername;
@@ -93,41 +94,48 @@ class AtlasApiClient {
                 if (err) {
                     console.log(err);
                 }
-                console.log(response);
+                if (callback) {
+                    callback(JSON.parse(response.body));
+                }
             })
-        } else if(deleteall && !clustername){
+        } else if (deleteall && !clustername) {
             var self = this;
-            this.getclusternames(function(names){
-                names.forEach(function(clustername){
+            this.getclusternames(function (names) {
+                names.forEach(function (clustername) {
                     var endpoint = "/clusters/" + clustername;
                     atlasrequest.doDelete(endpoint, self.auth, function (err, response) {
                         if (err) {
                             console.log(err);
                         }
-                        console.log(response);
-                        process.exit();
+                        if (callback) {
+                            callback(JSON.parse(response.body));
+                        }
                     })
                 })
             })
         }
 
     }
-    modifycluster(clustername, clusterdefinition){
+    modifycluster(clustername, clusterdefinition, callback) {
         atlasrequest.doPatch("/clusters", this.auth, clustername, clusterdefinition, function (err, result) {
             if (err) {
                 console.log(err);
             }
-            console.log(JSON.parse(result.body));
-            process.exit();
+            if (callback) {
+                callback(JSON.parse(result.body))
+            } else {
+                process.exit();
+            }
+
         });
     }
-    pausecluster(clustername){
-        var pause = {"paused":true};
-        this.modifycluster(clustername,pause);
+    pausecluster(clustername, callback) {
+        var pause = { "paused": true };
+        this.modifycluster(clustername, pause, callback);
     }
-    resumecluster(clustername){
-        var pause = {"paused":false};
-        this.modifycluster(clustername,pause);
+    resumecluster(clustername, callback) {
+        var pause = { "paused": false };
+        this.modifycluster(clustername, pause, callback);
     }
 }
 
