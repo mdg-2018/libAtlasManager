@@ -1,61 +1,57 @@
-Atlas Manager
-=============
+<h1>Atlas API Helper Library</h1>
+<h2>A node.js library wrapping MongoDB Atlas API calls</h2>
+<p>This library contains helper functions to more easily make calls to Atlas via its REST api.</p>
+<p>To use this library, add it as a dependeny to your node.js project:<br>
+<code>"dependencies": {
+    "atlasmanager": "github:mdg-2018/libAtlasManager"
+  }</code><br> Then run: <br><code>npm install</code></p>
+<h2><b>AtlasApiClient</b></h2>
+<p>The AtlasApiClient class manages credentials for connecting to an Atlas project and has functions to manipulate Atlas clusters. Each AtlasApiClient handles a single Atlas project, so you'll need multiple AtlasApiClients if you want to make changes to clusters in many different projects</p>
 
-This app was built to provide an example of how one might use the Atlas API to manage their Atlas clusters. This app contains example code to create, modify, and delete clusters in a project.
+<code>const AtlasApiClient = require('atlasmanager').AtlasApiClient;
+<br>var atlasApiClient = new AtlasApiClient("ProjectId","ApiKey","PublicApiKey","AtlasRoot" [optional])</code>
 
-For more information about MongoDB Atlas, check out <a href="https://cloud.mongodb.com">https://cloud.mongodb.com</a>
+<p>Constructor Arguments</p>
+<ul>
+<li> ProjectId: the ID of the Atlas project you want to target</li>
+<li> ApiKey: An Atlas API key</li>
+<li> PublicApiKey: Your Atlas public api key (usually a string with 8 characters)</li>
+<li> AtlasRoot: Optional URL for the <a href="https://docs.atlas.mongodb.com/reference/api/root/"> Atlas API starting point.</a> Defaults to <code>https://cloud.mongodb.com/api/atlas/v1.0/</code></li>
+</ul>
 
-Atlas Manager Usage
-===================
+<h3>API client functions</h3>
 
-To get started, rename __config.js to config.js, then specify your username and api key in the config.js file. Run npm install to install dependencies.
-
-> node index.js [argument] [options]  
-> example: node index.js createcluster --projectid projectIdHere
-
-## Arguments
-
-***getclusterinfo***  
-  purpose: lists detailed information about clusters in project  
-  options:  
-&nbsp;&nbsp;required: --projectid [yourProjectId]  
-&nbsp;&nbsp;optional: --clustername [nameOfCluster]  
-  notes: If cluster name is not specified, info for all clusters in the project will be displayed  
-
-***getclusternames***  
-  purpose: returns array containing the names of clusters in the project  
-  options:  
-    &nbsp;&nbsp;required: --projectid [yourProjectId]  
-
-***createcluster***  
-  purpose: create a new cluster in a project  
-  options:  
-  &nbsp;&nbsp;required: --projectid [yourProjectId]  
-   &nbsp;&nbsp;optional: --clusterdefintion [definitionJsonHere] --clusterdefintionfile [filePath]  
-    notes: clusterdefintion is a string of json defining the cluster configuration, clusterdefintionfile  
-           is a path to a json file containing the cluster definition. Only pass in one of these arguments!  
-           If not cluster definition of any kind is provided, an M10 with a random name will be created.  
-
-***deletecluster***  
-  purpose: deletes one or all clusters  
-  options:   
-    &nbsp;&nbsp;required: --projectid [yourProjectId]  
-    &nbsp;&nbsp;optional: --clustername [nameOfCluster] --all  
-    notes: Pass in clustername to delete specific cluster, --all will delete all clusters in project permanently!  
-
-***modifycluster***  
-  purpose: changes configuration of existing cluster  
-  options:  
-    &nbsp;&nbsp;required: --projectid [yourProjectId] --clustername [nameOfCluster]  
-    &nbsp;&nbsp;          Either --clusterdefinition [definitionJsonHere] OR --clusterdefintionfile [filePath]  
-
-***pausecluster***  
-  purpose: pauses a cluster  
-  options:  
-    &nbsp;&nbsp;required: --projectid [yourProjectId] --clustername [nameOfCluster]
-
-***resumecluster***  
-  purpose: resumes a cluster  
-  options:  
-    &nbsp;&nbsp;required: --projectid [yourProjectId] --clustername [nameOfCluster]
-
+<code>clusterinfo(clustername, callback)</code><br>
+<p>Gets information about clusters in a project. In the future you will be able to pass in a clustername and get information about only a specific cluster, but I haven't gotten around to implementing it yet. For now just use it like this:</p>
+<code>clusterinfo(null, function(clusters){
+  //do something
+});</code>
+<br><br>
+<code>getclusternames(callback)</code><br>
+<p>Returns an array containing the name of each cluster in a project</p>
+<br><br>
+<code>createcluster(clusterdefinition, callback)</code><br>
+<p>Creates a new cluster. clusterdefinition should be a json object describing the new state of the cluster. See the Atlas API docs for details. If no cluster definition is supplied, a cluster will be created based on default settings in the config.js file and given a random name.</p>
+<span>No cluster definition: </span><code>createcluster(null,null,function(result){
+  // do something
+})</code><br><br>
+<span>With json string defintion: </span><code>createcluster("{ // cluster defintion, see Atlas api docs }",null,function(result){
+  // do something
+})</code><br><br>
+<span>With cluster definition file: </span><code>createcluster(null,"/home/you/Documents/mycluster.json",function(result){
+  // do something
+})</code>
+<br><br><br>
+<code>deletecluster(clustername, deleteall, callback)</code><br>
+<p>Terminates either a single cluster or all clusters in a project. To delete a single cluster:<br>
+<code>deletecluster(myClusterName,false,function(result){ // do something })</code><br>
+To delete all clusters in a project: <code>deletecluster(null, true, function(result){ // do something })</code></p>
+<br><br>
+<code>modifycluster(clusterename, clusterdefinition, callback)</code><br>
+<p>Changes configuration of a single cluster. clusterdefinition should be a json object describing the new state of the cluster. See the Atlas API docs for details. </p>
+<br><br>
+<code>pausecluster(clustername, callback)</code><br>
+<p>Pauses a cluster</p>
+<br><br>
+<code>resumecluster(clustername, callback)</code><br>
+<p>Resumes a cluster</p>

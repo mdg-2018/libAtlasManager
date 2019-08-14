@@ -45,10 +45,10 @@ class AtlasApiClient {
         });
 
     }
-    createcluster(clusterdefinition, clusterdefinitionfile) {
+    createcluster(clusterdefinition, callback) {
         var definition;
 
-        if (clusterdefinition == null && clusterdefinitionfile == null) {
+        if (clusterdefinition == null) {
 
             //generate random name fo cluster, docker style
             var clustername = dockerNames.getRandomName().replace("_", "-");
@@ -57,17 +57,8 @@ class AtlasApiClient {
             definition.name = clustername;
         }
 
-        if (clusterdefinition != null && clusterdefinitionfile != null) {
-            throw new Error("Error: conflicting cluster definition information");
-        }
-
         if (clusterdefinition != null) {
-            definition = JSON.parse(clusterdefinition);
-        }
-
-        if (clusterdefinitionfile != null) {
-            var input = fs.readFileSync(clusterdefinitionfile);
-            definition = JSON.parse(input);
+            definition = clusterdefinition;
         }
 
         atlasrequest.doPost("/clusters", definition, this.auth, function (err, result) {
