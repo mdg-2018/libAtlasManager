@@ -81,7 +81,7 @@ class AtlasApiClient {
             })
         } else if (deleteall && !clustername) {
             var self = this;
-            this.getclusternames(function (names) {
+            this.getclusternames(function (err,names) {
                 names.forEach(function (clustername) {
                     var endpoint = "/clusters/" + clustername;
                     atlasrequest.doDelete(endpoint, self.auth, function (err, response) {
